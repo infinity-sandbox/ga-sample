@@ -52,5 +52,10 @@ jobs:
           git config --global user.email "ci@github.com"
           git config --global user.name "GitHub Actions"
 
+          # Debug — confirm secrets are loaded (shows length, not value)
+          echo "HF_USERNAME length: ${#HF_USERNAME}"
+          echo "HF_SPACE_NAME length: ${#HF_SPACE_NAME}"
+          echo "HF_TOKEN length: ${#HF_TOKEN}"
+
           # Push to Hugging Face Space repo
           git push https://${{ secrets.HF_USERNAME }}:${{ env.HF_TOKEN }}@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/${{ secrets.HF_SPACE_NAME }} main --force
