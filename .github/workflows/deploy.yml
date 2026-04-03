@@ -1,0 +1,56 @@
+name: CI/CD — Test and Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ─── JOB 1: Run Tests ───────────────────────────────────────
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v
+
+  # ─── JOB 2: Deploy to Hugging Face ──────────────────────────
+  deploy:
+    name: Deploy to Hugging Face Spaces
+    runs-on: ubuntu-latest
+    needs: test  # Only runs if tests pass ✅
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to Hugging Face Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config --global user.email "ci@github.com"
+          git config --global user.name "GitHub Actions"
+
+          # Push to Hugging Face Space repo
+          git push https://${{ secrets.HF_USERNAME }}:${{ env.HF_TOKEN }}@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/${{ secrets.HF_SPACE_NAME }} main --force
